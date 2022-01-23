@@ -6,8 +6,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jackc/pgtype/testutil"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5/pgtype/testutil"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5"
 	"github.com/gofrs/uuid"
 	pgxuuid "github.com/jackc/pgx-gofrs-uuid"
 )
@@ -22,6 +23,8 @@ import (
 func BenchmarkQueryDecode_PG_UUID_to_Go_<%= go_type.gsub(/\W/, "_") %>_<%= rows %>_rows_<%= columns %>_columns(b *testing.B) {
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
+
+	pgxuuid.Register(conn.ConnInfo())
 
 	b.ResetTimer()
 	var v [<%= columns %>]<%= go_type %>

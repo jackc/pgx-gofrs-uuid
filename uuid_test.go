@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid"
-	"github.com/jackc/pgtype/testutil"
 	pgxuuid "github.com/jackc/pgx-gofrs-uuid"
+	"github.com/jackc/pgx/v5/pgtype/testutil"
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetter(t *testing.T) {
+func TestCodecDecodeValue(t *testing.T) {
 	conn := testutil.MustConnectPgx(t)
 	defer testutil.MustCloseContext(t, conn)
 
@@ -46,4 +46,24 @@ func TestGetter(t *testing.T) {
 	}
 
 	require.NoError(t, rows.Err())
+}
+
+func TestArray(t *testing.T) {
+	conn := testutil.MustConnectPgx(t)
+	defer testutil.MustCloseContext(t, conn)
+
+	pgxuuid.Register(conn.ConnInfo())
+
+	inputSlice := []uuid.UUID{}
+
+	for i := 0; i < 10; i++ {
+		u, err := uuid.NewV4()
+		require.NoError(t, err)
+		inputSlice = append(inputSlice, u)
+	}
+
+	var outputSlice []uuid.UUID
+	err := conn.QueryRow(context.Background(), `select $1::uuid[]`, inputSlice).Scan(&outputSlice)
+	require.NoError(t, err)
+	require.Equal(t, inputSlice, outputSlice)
 }

@@ -4,66 +4,128 @@ import (
 	"fmt"
 
 	"github.com/gofrs/uuid"
-	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type UUID uuid.UUID
 
-func (d *UUID) DecodeUUID(u *pgtype.UUID) error {
-	if !u.Valid {
-		return fmt.Errorf("cannot decode uuid NULL into %T", d)
+func (u *UUID) ScanUUID(v pgtype.UUID) error {
+	if !v.Valid {
+		return fmt.Errorf("cannot scan NULL into *uuid.UUID")
 	}
 
-	*d = UUID(u.Bytes)
+	*u = v.Bytes
 	return nil
+}
+
+func (u UUID) UUIDValue() (pgtype.UUID, error) {
+	return pgtype.UUID{Bytes: [16]byte(u), Valid: true}, nil
 }
 
 type NullUUID uuid.NullUUID
 
-func (d *NullUUID) DecodeUUID(u *pgtype.UUID) error {
-	if u.Valid {
-		*d = NullUUID{UUID: u.Bytes, Valid: true}
-	} else {
-		*d = NullUUID{}
-	}
+func (u *NullUUID) ScanUUID(v pgtype.UUID) error {
+	*u = NullUUID{UUID: uuid.UUID(v.Bytes), Valid: v.Valid}
 	return nil
 }
 
-func UUIDDecoderWrapper(value interface{}) pgtype.UUIDDecoder {
-	switch value := value.(type) {
-	case *uuid.UUID:
-		return (*UUID)(value)
-	case *uuid.NullUUID:
-		return (*NullUUID)(value)
-	default:
-		return nil
-	}
+func (u NullUUID) UUIDValue() (pgtype.UUID, error) {
+	return pgtype.UUID{Bytes: [16]byte(u.UUID), Valid: u.Valid}, nil
 }
 
-func Getter(a pgtype.UUID) interface{} {
-	if !a.Valid {
-		return nil
+func TryWrapUUIDEncodePlan(value interface{}) (plan pgtype.WrappedEncodePlanNextSetter, nextValue interface{}, ok bool) {
+	switch value := value.(type) {
+	case uuid.UUID:
+		return &wrapUUIDEncodePlan{}, UUID(value), true
+	case uuid.NullUUID:
+		return &wrapNullUUIDEncodePlan{}, NullUUID(value), true
 	}
 
-	var b UUID
-	err := b.DecodeUUID(&a)
+	return nil, nil, false
+}
+
+type wrapUUIDEncodePlan struct {
+	next pgtype.EncodePlan
+}
+
+func (plan *wrapUUIDEncodePlan) SetNext(next pgtype.EncodePlan) { plan.next = next }
+
+func (plan *wrapUUIDEncodePlan) Encode(value interface{}, buf []byte) (newBuf []byte, err error) {
+	return plan.next.Encode(UUID(value.(uuid.UUID)), buf)
+}
+
+type wrapNullUUIDEncodePlan struct {
+	next pgtype.EncodePlan
+}
+
+func (plan *wrapNullUUIDEncodePlan) SetNext(next pgtype.EncodePlan) { plan.next = next }
+
+func (plan *wrapNullUUIDEncodePlan) Encode(value interface{}, buf []byte) (newBuf []byte, err error) {
+	return plan.next.Encode(NullUUID(value.(uuid.NullUUID)), buf)
+}
+
+func TryWrapUUIDScanPlan(target interface{}) (plan pgtype.WrappedScanPlanNextSetter, nextDst interface{}, ok bool) {
+	switch target := target.(type) {
+	case *uuid.UUID:
+		return &wrapUUIDScanPlan{}, (*UUID)(target), true
+	case *uuid.NullUUID:
+		return &wrapNullUUIDScanPlan{}, (*NullUUID)(target), true
+	}
+
+	return nil, nil, false
+}
+
+type wrapUUIDScanPlan struct {
+	next pgtype.ScanPlan
+}
+
+func (plan *wrapUUIDScanPlan) SetNext(next pgtype.ScanPlan) { plan.next = next }
+
+func (plan *wrapUUIDScanPlan) Scan(src []byte, dst interface{}) error {
+	return plan.next.Scan(src, (*UUID)(dst.(*uuid.UUID)))
+}
+
+type wrapNullUUIDScanPlan struct {
+	next pgtype.ScanPlan
+}
+
+func (plan *wrapNullUUIDScanPlan) SetNext(next pgtype.ScanPlan) { plan.next = next }
+
+func (plan *wrapNullUUIDScanPlan) Scan(src []byte, dst interface{}) error {
+	return plan.next.Scan(src, (*NullUUID)(dst.(*uuid.NullUUID)))
+}
+
+type UUIDCodec struct {
+	pgtype.UUIDCodec
+}
+
+func (UUIDCodec) DecodeValue(ci *pgtype.ConnInfo, oid uint32, format int16, src []byte) (interface{}, error) {
+	if src == nil {
+		return nil, nil
+	}
+
+	var target uuid.UUID
+	scanPlan := ci.PlanScan(oid, format, &target)
+	if scanPlan == nil {
+		return nil, fmt.Errorf("PlanScan did not find a plan")
+	}
+
+	err := scanPlan.Scan(src, &target)
 	if err != nil {
-		panic(err) // Can't happen
+		return nil, err
 	}
 
-	return uuid.UUID(b)
+	return target, nil
 }
 
 // Register registers the github.com/gofrs/uuid integration with a pgtype.ConnInfo.
 func Register(ci *pgtype.ConnInfo) {
-	ci.PreferAssignToOverSQLScannerForType(&uuid.UUID{})
-	ci.PreferAssignToOverSQLScannerForType(&uuid.NullUUID{})
+	ci.TryWrapEncodePlanFuncs = append([]pgtype.TryWrapEncodePlanFunc{TryWrapUUIDEncodePlan}, ci.TryWrapEncodePlanFuncs...)
+	ci.TryWrapScanPlanFuncs = append([]pgtype.TryWrapScanPlanFunc{TryWrapUUIDScanPlan}, ci.TryWrapScanPlanFuncs...)
+
 	ci.RegisterDataType(pgtype.DataType{
-		Value: &pgtype.UUID{
-			UUIDDecoderWrapper: UUIDDecoderWrapper,
-			Getter:             Getter,
-		},
-		Name: "uuid",
-		OID:  pgtype.UUIDOID,
+		Name:  "uuid",
+		OID:   pgtype.UUIDOID,
+		Codec: UUIDCodec{},
 	})
 }
