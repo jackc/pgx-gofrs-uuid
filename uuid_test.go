@@ -14,7 +14,7 @@ func TestCodecDecodeValue(t *testing.T) {
 	conn := testutil.MustConnectPgx(t)
 	defer testutil.MustCloseContext(t, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	original, err := uuid.NewV4()
 	require.NoError(t, err)
@@ -52,7 +52,7 @@ func TestArray(t *testing.T) {
 	conn := testutil.MustConnectPgx(t)
 	defer testutil.MustCloseContext(t, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	inputSlice := []uuid.UUID{}
 

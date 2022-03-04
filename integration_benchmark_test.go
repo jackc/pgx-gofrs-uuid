@@ -17,7 +17,7 @@ func BenchmarkQueryDecode_PG_UUID_to_Go_pgtype_UUID_1_rows_1_columns(b *testing.
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	b.ResetTimer()
 	var v [1]pgtype.UUID
@@ -39,7 +39,7 @@ func BenchmarkQueryDecode_PG_UUID_to_Go_pgtype_UUID_1_rows_10_columns(b *testing
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	b.ResetTimer()
 	var v [10]pgtype.UUID
@@ -61,7 +61,7 @@ func BenchmarkQueryDecode_PG_UUID_to_Go_pgtype_UUID_10_rows_1_columns(b *testing
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	b.ResetTimer()
 	var v [1]pgtype.UUID
@@ -83,7 +83,7 @@ func BenchmarkQueryDecode_PG_UUID_to_Go_pgtype_UUID_100_rows_10_columns(b *testi
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	b.ResetTimer()
 	var v [10]pgtype.UUID
@@ -105,7 +105,7 @@ func BenchmarkQueryDecode_PG_UUID_to_Go_uuid_UUID_1_rows_1_columns(b *testing.B)
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	b.ResetTimer()
 	var v [1]uuid.UUID
@@ -127,7 +127,7 @@ func BenchmarkQueryDecode_PG_UUID_to_Go_uuid_UUID_1_rows_10_columns(b *testing.B
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	b.ResetTimer()
 	var v [10]uuid.UUID
@@ -149,7 +149,7 @@ func BenchmarkQueryDecode_PG_UUID_to_Go_uuid_UUID_10_rows_1_columns(b *testing.B
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	b.ResetTimer()
 	var v [1]uuid.UUID
@@ -171,7 +171,7 @@ func BenchmarkQueryDecode_PG_UUID_to_Go_uuid_UUID_100_rows_10_columns(b *testing
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	b.ResetTimer()
 	var v [10]uuid.UUID
@@ -193,7 +193,7 @@ func BenchmarkQueryDecode_PG_UUID_to_Go_uuid_NullUUID_1_rows_1_columns(b *testin
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	b.ResetTimer()
 	var v [1]uuid.NullUUID
@@ -215,7 +215,7 @@ func BenchmarkQueryDecode_PG_UUID_to_Go_uuid_NullUUID_1_rows_10_columns(b *testi
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	b.ResetTimer()
 	var v [10]uuid.NullUUID
@@ -237,7 +237,7 @@ func BenchmarkQueryDecode_PG_UUID_to_Go_uuid_NullUUID_10_rows_1_columns(b *testi
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	b.ResetTimer()
 	var v [1]uuid.NullUUID
@@ -259,7 +259,7 @@ func BenchmarkQueryDecode_PG_UUID_to_Go_uuid_NullUUID_100_rows_10_columns(b *tes
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	b.ResetTimer()
 	var v [10]uuid.NullUUID

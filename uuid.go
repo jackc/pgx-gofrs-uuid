@@ -99,13 +99,13 @@ type UUIDCodec struct {
 	pgtype.UUIDCodec
 }
 
-func (UUIDCodec) DecodeValue(ci *pgtype.ConnInfo, oid uint32, format int16, src []byte) (interface{}, error) {
+func (UUIDCodec) DecodeValue(tm *pgtype.Map, oid uint32, format int16, src []byte) (interface{}, error) {
 	if src == nil {
 		return nil, nil
 	}
 
 	var target uuid.UUID
-	scanPlan := ci.PlanScan(oid, format, &target)
+	scanPlan := tm.PlanScan(oid, format, &target)
 	if scanPlan == nil {
 		return nil, fmt.Errorf("PlanScan did not find a plan")
 	}
@@ -118,12 +118,12 @@ func (UUIDCodec) DecodeValue(ci *pgtype.ConnInfo, oid uint32, format int16, src 
 	return target, nil
 }
 
-// Register registers the github.com/gofrs/uuid integration with a pgtype.ConnInfo.
-func Register(ci *pgtype.ConnInfo) {
-	ci.TryWrapEncodePlanFuncs = append([]pgtype.TryWrapEncodePlanFunc{TryWrapUUIDEncodePlan}, ci.TryWrapEncodePlanFuncs...)
-	ci.TryWrapScanPlanFuncs = append([]pgtype.TryWrapScanPlanFunc{TryWrapUUIDScanPlan}, ci.TryWrapScanPlanFuncs...)
+// Register registers the github.com/gofrs/uuid integration with a pgtype.Map.
+func Register(tm *pgtype.Map) {
+	tm.TryWrapEncodePlanFuncs = append([]pgtype.TryWrapEncodePlanFunc{TryWrapUUIDEncodePlan}, tm.TryWrapEncodePlanFuncs...)
+	tm.TryWrapScanPlanFuncs = append([]pgtype.TryWrapScanPlanFunc{TryWrapUUIDScanPlan}, tm.TryWrapScanPlanFuncs...)
 
-	ci.RegisterDataType(pgtype.DataType{
+	tm.RegisterType(&pgtype.Type{
 		Name:  "uuid",
 		OID:   pgtype.UUIDOID,
 		Codec: UUIDCodec{},

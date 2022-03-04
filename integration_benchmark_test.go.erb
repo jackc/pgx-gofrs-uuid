@@ -24,7 +24,7 @@ func BenchmarkQueryDecode_PG_UUID_to_Go_<%= go_type.gsub(/\W/, "_") %>_<%= rows 
 	conn := testutil.MustConnectPgx(b)
 	defer testutil.MustCloseContext(b, conn)
 
-	pgxuuid.Register(conn.ConnInfo())
+	pgxuuid.Register(conn.TypeMap())
 
 	b.ResetTimer()
 	var v [<%= columns %>]<%= go_type %>

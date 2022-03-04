@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/gofrs/uuid v4.2.0+incompatible
-	github.com/jackc/pgx/v5 v5.0.0-20220123004046-0ddf9e3b4b97
+	github.com/jackc/pgx/v5 v5.0.0-20220227022815-a8f6674a07b2
 	github.com/stretchr/testify v1.7.0
 )
 
